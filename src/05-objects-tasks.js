@@ -113,8 +113,8 @@ function fromJSON(proto, json) {
  */
 
 class Selector {
-  constructor(obj) {
-    this.selectorsStorage = [obj];
+  constructor(selector, value) {
+    this.selectorsStorage = [{ selector, value }];
   }
 
   element(value) {
@@ -186,38 +186,62 @@ class Selector {
       if (isExist) throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
     }
 
-    const selectorsOrder = ['element', 'id', 'class', 'attr', 'pseudoClass', 'pseudoElement'];
     const lastElem = this.selectorsStorage.at(-1).selector;
+    if (selector === 'element') {
+      if (lastElem !== 'element') {
+        throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+      }
+    }
 
-    if (selectorsOrder.indexOf(selector) < selectorsOrder.indexOf(lastElem)) {
-      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    if (selector === 'id') {
+      if (lastElem !== 'element' && lastElem !== 'id') {
+        throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+      }
+    }
+
+    if (selector === 'class') {
+      if (lastElem !== 'element' && lastElem !== 'id' && lastElem !== 'class') {
+        throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+      }
+    }
+
+    if (selector === 'attr') {
+      if (lastElem === 'pseudoClass' || lastElem === 'pseudoElement') {
+        throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+      }
+    }
+
+    if (selector === 'pseudoClass') {
+      if (lastElem === 'pseudoElement') {
+        throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+      }
     }
   }
 }
 
 const cssSelectorBuilder = {
   element(value) {
-    return new Selector({ selector: 'element', value });
+    return new Selector('element', value);
   },
 
   id(value) {
-    return new Selector({ selector: 'id', value });
+    return new Selector('id', value);
   },
 
   class(value) {
-    return new Selector({ selector: 'class', value });
+    return new Selector('class', value);
   },
 
   attr(value) {
-    return new Selector({ selector: 'attr', value });
+    return new Selector('attr', value);
   },
 
   pseudoClass(value) {
-    return new Selector({ selector: 'pseudoClass', value });
+    return new Selector('pseudoClass', value);
   },
 
   pseudoElement(value) {
-    return new Selector({ selector: 'pseudoElement', value });
+    return new Selector('pseudoElement', value);
   },
 
   combine(selector1, combinator, selector2) {

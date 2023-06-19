@@ -538,11 +538,14 @@ function distinct(arr) {
  *   }
  */
 function group(array, keySelector, valueSelector) {
-  return array.reduce((acc, item) => {
+  const map = new Map();
+  array.map((item) => {
     const key = keySelector(item);
     const value = valueSelector(item);
-    return acc.set(key, acc.has(key) ? [...acc.get(key), value] : [value]);
-  }, new Map());
+    if (map.has(key)) return map.set(key, [...map.get(key), value]);
+    return map.set(key, [value]);
+  });
+  return map;
 }
 
 
